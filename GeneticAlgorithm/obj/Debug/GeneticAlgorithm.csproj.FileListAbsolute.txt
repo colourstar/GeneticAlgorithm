@@ -1,0 +1,12 @@
+E:\Work\GeneticAlgorithm\GeneticAlgorithm\bin\Debug\GeneticAlgorithm.exe.config
+E:\Work\GeneticAlgorithm\GeneticAlgorithm\bin\Debug\GeneticAlgorithm.exe
+E:\Work\GeneticAlgorithm\GeneticAlgorithm\bin\Debug\GeneticAlgorithm.pdb
+E:\Work\GeneticAlgorithm\GeneticAlgorithm\bin\Debug\EPPlus.dll
+E:\Work\GeneticAlgorithm\GeneticAlgorithm\bin\Debug\Excel.dll
+E:\Work\GeneticAlgorithm\GeneticAlgorithm\bin\Debug\ICSharpCode.SharpZipLib.dll
+E:\Work\GeneticAlgorithm\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.csproj.AssemblyReference.cache
+E:\Work\GeneticAlgorithm\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.csproj.SuggestedBindingRedirects.cache
+E:\Work\GeneticAlgorithm\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.csproj.CoreCompileInputs.cache
+E:\Work\GeneticAlgorithm\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.csproj.CopyComplete
+E:\Work\GeneticAlgorithm\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.exe
+E:\Work\GeneticAlgorithm\GeneticAlgorithm\obj\Debug\GeneticAlgorithm.pdb
