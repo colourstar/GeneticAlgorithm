@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Reflection;
 
 namespace GeneticAlgorithm
 {
@@ -30,18 +31,15 @@ namespace GeneticAlgorithm
         // 定义个体
         public class Individural
         {
-            public List<Position> m_kPositions = new List<Position>();
+            public Position m_kPosition = new Position();
 
             public float m_fFitness = 0.0f;
 
             public void Clone(Individural origin)
             {
-                m_kPositions.Clear();
                 m_fFitness = origin.m_fFitness;
-                origin.m_kPositions.ForEach(t => 
-                {
-                    m_kPositions.Add(new Position() { m_fPositionX = t.m_fPositionX, m_fPositionY = t.m_fPositionY });
-                });
+                m_kPosition.m_fPositionX = origin.m_kPosition.m_fPositionX;
+                m_kPosition.m_fPositionY = origin.m_kPosition.m_fPositionY;
             }
         }
 
@@ -69,45 +67,60 @@ namespace GeneticAlgorithm
 
 
         private static Random m_kRandom = new Random();
-        public static Dictionary<int, List<int>> m_dicIndividuralToBuilding = new Dictionary<int, List<int>>();
+        public static List<List<int>> m_dicIndividuralToBuilding = new List<List<int>>();
+        private static int m_iCurrentSolutionIndex = 0;
 
         public static void Main(string[] args)
         {
+            // 位置对应楼号的方案是确定的
+            m_dicIndividuralToBuilding.Add(new List<int>() { 1, 8, 9, 18 });
+            m_dicIndividuralToBuilding.Add(new List<int>() { 2, 3, 4 });
+            m_dicIndividuralToBuilding.Add(new List<int>() { 5, 12 });
+            m_dicIndividuralToBuilding.Add(new List<int>() { 6, 7, 11 });
+            m_dicIndividuralToBuilding.Add(new List<int>() { 10, 17 });
+            m_dicIndividuralToBuilding.Add(new List<int>() { 13, 14, 21 });
+            m_dicIndividuralToBuilding.Add(new List<int>() { 15, 20 });
+            m_dicIndividuralToBuilding.Add(new List<int>() { 16, 19 });
+
             // 初始化所有楼
             _InitBuilding();
 
-            // 初始化个体
-            _InitIndividural();
-
-            int iIndex = 0;
-            while (iIndex < m_iGenerateCount)
+            for (int i = 0; i < m_dicIndividuralToBuilding.Count; ++i)
             {
-                // 针对每一个个体计算其适应度
-                _CaculateFitness();
+                m_iCurrentSolutionIndex = i;
 
-                // 选择
-                _SelectIndividural();
+                // 初始化个体
+                _InitIndividural();
 
-                // 交叉
-                _CrossIndividural();
-
-                // 变异
-                _VariationIndividural();
-
-                // 禁忌算法
-                if (iIndex % 10 == 0)
+                int iIndex = 0;
+                while (iIndex < m_iGenerateCount)
                 {
+                    // 针对每一个个体计算其适应度
+                    _CaculateFitness();
 
+                    // 选择
+                    _SelectIndividural();
+
+                    // 交叉
+                    _CrossIndividural();
+
+                    // 变异
+                    _VariationIndividural();
+
+                    // 禁忌算法
+                    if (iIndex % 10 == 0)
+                    {
+
+                    }
+
+                    // 对适应度再次进行排序
+                    _SortByFitness();
+
+                    iIndex++;
                 }
 
-                // 对适应度再次进行排序
-                _SortByFitness();
-
                 // 输出结果
-                _OutputResult(iIndex);
-
-
-                iIndex++;
+                _OutputResult();
             }
 
             // 停留等待
@@ -147,16 +160,6 @@ namespace GeneticAlgorithm
                 };
                 m_arrBuildingList.Add(kCell);
             }
-
-            // 位置对应楼号的方案是确定的
-            m_dicIndividuralToBuilding.Add(0, new List<int>() { 1, 8, 9, 18 });
-            m_dicIndividuralToBuilding.Add(1, new List<int>() { 2, 3, 4 });
-            m_dicIndividuralToBuilding.Add(2, new List<int>() { 5, 12 });
-            m_dicIndividuralToBuilding.Add(3, new List<int>() { 6, 7, 11 });
-            m_dicIndividuralToBuilding.Add(4, new List<int>() { 10, 17 });
-            m_dicIndividuralToBuilding.Add(5, new List<int>() { 13,14, 21 });
-            m_dicIndividuralToBuilding.Add(6, new List<int>() { 15, 20 });
-            m_dicIndividuralToBuilding.Add(7, new List<int>() { 16, 19 });
         }
 
         /// <summary>
@@ -164,14 +167,12 @@ namespace GeneticAlgorithm
         /// </summary>
         private static void _InitIndividural()
         {
-            // 创建100个个体,每个个体里拥有8个变电所的随机位置
+            m_arrIndividural.Clear();
+            // 创建100个个体,每个个体带一个随机的位置
             for (int i = 0; i < m_iIndividuarlNumbers; ++i)
             {
                 var instance = new Individural();
-                for (int iIndex = 0; iIndex < m_iElectricNodeNumbers; ++iIndex)
-                {
-                    instance.m_kPositions.Add(GenerateRandomPos());
-                }
+                instance.m_kPosition = GenerateRandomPos();
                 m_arrIndividural.Add(instance);
             }
         }
@@ -211,54 +212,31 @@ namespace GeneticAlgorithm
         private static float _CaculateIndividural(Individural instance)
         {
             float fFitness = 0.0f;
-            // 适应度的算法，暂时采用所在变电所到达各个供电单元的距离
-
-
             // 计算方程式部分一
-            float fFitnessPart1 = 0.0f;
-            for (int i = 0; i < instance.m_kPositions.Count; ++i)
-            {
-                float fFitnessSingle = CiSi * m_fR0MParam + CuSi;
-                fFitnessPart1 += fFitnessSingle;
-            }
+            float fFitnessPart1 = CiSi * m_fR0MParam + CuSi;
 
             // 计算方程式部分二
             float fFitnessPart2 = 0.0f;
-            for (int i = 0; i < instance.m_kPositions.Count; ++i)
+            Position kElectricPos = instance.m_kPosition;
+            m_dicIndividuralToBuilding[m_iCurrentSolutionIndex].ForEach(t =>
             {
-                // 每一个距离都乘一下
-                for (int iBuildingIndex = 0; iBuildingIndex < m_iElectricNodeNumbers; ++iBuildingIndex)
-                {
-                    Position kElectricPos = instance.m_kPositions[iBuildingIndex];
-                    m_dicIndividuralToBuilding[i].ForEach(t => 
-                    {
-                        Position kBuildingPos = m_arrBuildingList[t - 1].m_vecPosition;
+                Position kBuildingPos = m_arrBuildingList[t - 1].m_vecPosition;
 
-                        float fDistance = kElectricPos.Distance(kBuildingPos);
-                        fFitnessPart2 += (float)Math.Sqrt(fDistance);
-                    });
-                }
-            }
+                float fDistance = kElectricPos.Distance(kBuildingPos);
+                fFitnessPart2 += (float)Math.Sqrt(fDistance);
+            }); 
             fFitnessPart2 = fFitnessPart2 * alpha * m_fR0KParam;
 
             // 计算方程式部分三
             float fFitnessPart3 = 0.0f;
-            for (int i = 0; i < instance.m_kPositions.Count; ++i)
+            m_dicIndividuralToBuilding[m_iCurrentSolutionIndex].ForEach(t =>
             {
-                // 每一个距离都乘一下, 最后再乘以一下负荷
-                for (int iBuildingIndex = 0; iBuildingIndex < m_iElectricNodeNumbers; ++iBuildingIndex)
-                {
-                    Position kElectricPos = instance.m_kPositions[iBuildingIndex];
+                Position kBuildingPos = m_arrBuildingList[t - 1].m_vecPosition;
 
-                    m_dicIndividuralToBuilding[i].ForEach(t =>
-                    {
-                        Position kBuildingPos = m_arrBuildingList[t - 1].m_vecPosition;
+                float fDistance = kElectricPos.Distance(kBuildingPos);
+                fFitnessPart3 += (float)Math.Sqrt(fDistance) * m_arrBuildingList[t - 1].m_fWValue;
+            });
 
-                        float fDistance = kElectricPos.Distance(kBuildingPos);
-                        fFitnessPart3 += (float)Math.Sqrt(fDistance) * m_arrBuildingList[t - 1].m_fWValue;
-                    });
-                }
-            }
             fFitness = fFitnessPart1 + fFitnessPart2 + fFitnessPart3;
 
             return fFitness;
@@ -355,26 +333,23 @@ namespace GeneticAlgorithm
                 }
 
                 // 这里进行交叉操作,暂时做成8个变电所全部进行交叉
-                for (int iIndex = 0; iIndex < m_iElectricNodeNumbers; ++iIndex) 
-                {
-                    float fPositionAX = m_arrIndividural[i].m_kPositions[iIndex].m_fPositionX;
-                    float fPositionAY = m_arrIndividural[i].m_kPositions[iIndex].m_fPositionY;
+                float fPositionAX = m_arrIndividural[i].m_kPosition.m_fPositionX;
+                float fPositionAY = m_arrIndividural[i].m_kPosition.m_fPositionY;
 
-                    float fPositionBX = m_arrIndividural[i + 1].m_kPositions[iIndex].m_fPositionX;
-                    float fPositionBY = m_arrIndividural[i + 1].m_kPositions[iIndex].m_fPositionY;
+                float fPositionBX = m_arrIndividural[i + 1].m_kPosition.m_fPositionX;
+                float fPositionBY = m_arrIndividural[i + 1].m_kPosition.m_fPositionY;
 
-                    float fPositionAXNew = fPercent * fPositionAX + (1.0f - fPercent) * fPositionBX;
-                    float fPositionAYNew = fPercent * fPositionAY + (1.0f - fPercent) * fPositionBY;
+                float fPositionAXNew = fPercent * fPositionAX + (1.0f - fPercent) * fPositionBX;
+                float fPositionAYNew = fPercent * fPositionAY + (1.0f - fPercent) * fPositionBY;
 
-                    float fPositionBXNew = fPercent * fPositionBX + (1.0f - fPercent) * fPositionAX;
-                    float fPositionBYNew = fPercent * fPositionBY + (1.0f - fPercent) * fPositionAY;
+                float fPositionBXNew = fPercent * fPositionBX + (1.0f - fPercent) * fPositionAX;
+                float fPositionBYNew = fPercent * fPositionBY + (1.0f - fPercent) * fPositionAY;
 
-                    m_arrIndividural[i].m_kPositions[iIndex].m_fPositionX = fPositionAXNew;
-                    m_arrIndividural[i].m_kPositions[iIndex].m_fPositionY = fPositionAYNew;
+                m_arrIndividural[i].m_kPosition.m_fPositionX = fPositionAXNew;
+                m_arrIndividural[i].m_kPosition.m_fPositionY = fPositionAYNew;
 
-                    m_arrIndividural[i + 1].m_kPositions[iIndex].m_fPositionX = fPositionBXNew;
-                    m_arrIndividural[i + 1].m_kPositions[iIndex].m_fPositionY = fPositionBYNew;
-                }
+                m_arrIndividural[i + 1].m_kPosition.m_fPositionX = fPositionBXNew;
+                m_arrIndividural[i + 1].m_kPosition.m_fPositionY = fPositionBYNew;
             }
         }
 
@@ -431,13 +406,16 @@ namespace GeneticAlgorithm
             return (T)o;
         }
 
-        private static void _OutputResult(int iTime)
+        private static void _OutputResult()
         {
-            Console.WriteLine($"第{iTime + 1}次迭代，最佳适应度为: {(int)m_arrIndividural[0].m_fFitness}, 变电所的位置为：");
-            for (int i = 0; i < m_iElectricNodeNumbers; ++i)
+            Console.Write($"分组{m_iCurrentSolutionIndex + 1}, 楼号为:");
+            for (int i = 0; i < m_dicIndividuralToBuilding[m_iCurrentSolutionIndex].Count; i++) 
             {
-                Console.WriteLine($"变电所 {i + 1}，位置X：{m_arrIndividural[0].m_kPositions[i].m_fPositionX} 位置Y：{m_arrIndividural[0].m_kPositions[i].m_fPositionY}");
+                Console.Write($"{m_dicIndividuralToBuilding[m_iCurrentSolutionIndex][i]}, ");
             }
+            Console.WriteLine($" 最佳适应度为:{(int)m_arrIndividural[0].m_fFitness}");
+            Console.WriteLine($"变电所的位置X：{m_arrIndividural[0].m_kPosition.m_fPositionX} 位置Y：{m_arrIndividural[0].m_kPosition.m_fPositionY}");
+
         }
         #endregion
     }
