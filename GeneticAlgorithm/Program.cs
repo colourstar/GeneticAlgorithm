@@ -234,10 +234,11 @@ namespace GeneticAlgorithm
                 Position kBuildingPos = m_arrBuildingList[t - 1].m_vecPosition;
 
                 float fDistance = kElectricPos.Distance(kBuildingPos);
-                fFitnessPart3 += (float)Math.Sqrt(fDistance) * m_arrBuildingList[t - 1].m_fWValue;
+                fFitnessPart3 += (float)Math.Sqrt(fDistance) * m_arrBuildingList[t - 1].m_fWValue / 1000.0f;
             });
 
             fFitness = fFitnessPart1 + fFitnessPart2 + fFitnessPart3;
+            fFitness = -fFitness;
 
             return fFitness;
         }
@@ -273,19 +274,32 @@ namespace GeneticAlgorithm
             List<Individural> arrChildIndividural = new List<Individural>();
 
             // 进行迭代计算,
-            for (int i = 0; i < m_iIndividuarlNumbers; ++i)
+            for (int i = 0; i < m_iIndividuarlNumbers / 2; ++i)
             {
-                float fRandomFitness = m_kRandom.Next(0, (int)fTotalFitness);
-                int iIndex = _NextRouletteIndex(fRandomFitness, m_arrIndividural);
+                //float fRandomFitness = m_kRandom.Next(0, (int)fTotalFitness);
+                //int iIndex = _NextRouletteIndex(fRandomFitness, m_arrIndividural);
 
-                if (iIndex < 0 || iIndex >= m_arrIndividural.Count)
-                {
-                    continue;
-                }
+                //if (iIndex < 0 || iIndex >= m_arrIndividural.Count)
+                //{
+                //    continue;
+                //}
 
                 Individural childInstance = new Individural();
-                childInstance.Clone(m_arrIndividural[iIndex]);
+                childInstance.Clone(m_arrIndividural[i]);
                 arrChildIndividural.Add(childInstance);
+            }
+            // 将每两个点进行取中心操作，生成子节点
+            int iCount = arrChildIndividural.Count;
+            for (int i = 0; i < iCount; i += 2)
+            {
+                Individural childInstance = new Individural();
+                childInstance.m_kPosition = new Position()
+                {
+                    m_fPositionX = (arrChildIndividural[i].m_kPosition.m_fPositionX + arrChildIndividural[i + 1].m_kPosition.m_fPositionX) / 2.0f,
+                    m_fPositionY = (arrChildIndividural[i].m_kPosition.m_fPositionY + arrChildIndividural[i + 1].m_kPosition.m_fPositionY) / 2.0f
+                };
+                arrChildIndividural.Add(childInstance);
+                childInstance.m_fFitness = _CaculateIndividural(childInstance);
             }
 
             // 迭代完毕之后,生成新的一代,直接赋值过去
@@ -413,7 +427,7 @@ namespace GeneticAlgorithm
             {
                 Console.Write($"{m_dicIndividuralToBuilding[m_iCurrentSolutionIndex][i]}, ");
             }
-            Console.WriteLine($" 最佳适应度为:{(int)m_arrIndividural[0].m_fFitness}");
+            Console.WriteLine($" 最佳适应度为:{(int)(-m_arrIndividural[0].m_fFitness)}");
             Console.WriteLine($"变电所的位置X：{m_arrIndividural[0].m_kPosition.m_fPositionX} 位置Y：{m_arrIndividural[0].m_kPosition.m_fPositionY}");
 
         }
