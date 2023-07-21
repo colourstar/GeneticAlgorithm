@@ -73,14 +73,15 @@ namespace GeneticAlgorithm
         public static void Main(string[] args)
         {
             // 位置对应楼号的方案是确定的
-            m_dicIndividuralToBuilding.Add(new List<int>() { 1, 8, 9, 18 });
-            m_dicIndividuralToBuilding.Add(new List<int>() { 2, 3, 4 });
-            m_dicIndividuralToBuilding.Add(new List<int>() { 5, 12 });
-            m_dicIndividuralToBuilding.Add(new List<int>() { 6, 7, 11 });
-            m_dicIndividuralToBuilding.Add(new List<int>() { 10, 17 });
-            m_dicIndividuralToBuilding.Add(new List<int>() { 13, 14, 21 });
-            m_dicIndividuralToBuilding.Add(new List<int>() { 15, 20 });
-            m_dicIndividuralToBuilding.Add(new List<int>() { 16, 19 });
+            //m_dicIndividuralToBuilding.Add(new List<int>() { 1, 8, 9, 18 });
+            //m_dicIndividuralToBuilding.Add(new List<int>() { 2, 3, 4 });
+            //m_dicIndividuralToBuilding.Add(new List<int>() { 5, 12 });
+            //m_dicIndividuralToBuilding.Add(new List<int>() { 6, 7, 11 });
+            //m_dicIndividuralToBuilding.Add(new List<int>() { 10, 17 });
+            //m_dicIndividuralToBuilding.Add(new List<int>() { 13, 14, 21 });
+            //m_dicIndividuralToBuilding.Add(new List<int>() { 15, 20 });
+            //m_dicIndividuralToBuilding.Add(new List<int>() { 16, 19 });
+            _InitGroup();
 
             // 初始化所有楼
             _InitBuilding();
@@ -159,6 +160,27 @@ namespace GeneticAlgorithm
                     m_fWValue = iValue
                 };
                 m_arrBuildingList.Add(kCell);
+            }
+        }
+
+        private static void _InitGroup()
+        {
+            m_dicIndividuralToBuilding.Clear();
+            DataRowCollection kDataCollection = ExcelHelper.ReadExcel($"{System.Environment.CurrentDirectory}\\Excel.xlsx", "Sheet2");
+            for (int i = 0; i < kDataCollection.Count; ++i)
+            {
+                string strName = kDataCollection[i][0].ToString();
+                string[] arrGroupIndex = strName.Split('|');
+                List<int> aiIndexList = new List<int>();
+                for (int j = 0; j < arrGroupIndex.Length; ++j)
+                {
+                    if (int.TryParse(arrGroupIndex[j], out int iResult))
+                    {
+                        aiIndexList.Add(iResult);
+                    }
+                }
+
+                m_dicIndividuralToBuilding.Add(aiIndexList);
             }
         }
 
