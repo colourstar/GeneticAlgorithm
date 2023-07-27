@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 
@@ -45,8 +46,8 @@ namespace GeneticAlgorithm
 
         public static List<Building> m_arrBuildingList = new List<Building>();
         public static List<Individural> m_arrIndividural = new List<Individural>();
-        private static readonly int m_iIndividuarlNumbers = 50;         // 个体数量
-        private static readonly int m_iSelectNumbers = 50;              // 每轮生成新个体的数量
+        private static readonly int m_iIndividuarlNumbers = 20;         // 个体数量
+        private static readonly int m_iSelectNumbers = 20;              // 每轮生成新个体的数量
         private static readonly int m_iGenerateCount = 1000;             // 迭代次数
         private static readonly float m_fMaxPositionX = 412;            // x最大范围
         private static readonly float m_fMaxPositionY = 258;            // y最大范围
@@ -64,23 +65,17 @@ namespace GeneticAlgorithm
         private static readonly float m_fR0MParam = (R0 * (float)Math.Pow(1.0f + R0, m)) / (R0 * (float)Math.Pow(1.0f + R0, m) - 1.0f);
         private static readonly float m_fR0KParam = (R0 * (float)Math.Pow(1.0f + R0, k)) / (R0 * (float)Math.Pow(1.0f + R0, k) - 1.0f);
 
-
-
         private static Random m_kRandom = new Random();
         public static List<List<int>> m_dicIndividuralToBuilding = new List<List<int>>();
         private static int m_iCurrentSolutionIndex = 0;
 
+        private static StreamWriter m_kFileOutputWriter = null;
+
+
         public static void Main(string[] args)
         {
+            m_kFileOutputWriter = new StreamWriter("./Output.txt");
             // 位置对应楼号的方案是确定的
-            //m_dicIndividuralToBuilding.Add(new List<int>() { 1, 8, 9, 18 });
-            //m_dicIndividuralToBuilding.Add(new List<int>() { 2, 3, 4 });
-            //m_dicIndividuralToBuilding.Add(new List<int>() { 5, 12 });
-            //m_dicIndividuralToBuilding.Add(new List<int>() { 6, 7, 11 });
-            //m_dicIndividuralToBuilding.Add(new List<int>() { 10, 17 });
-            //m_dicIndividuralToBuilding.Add(new List<int>() { 13, 14, 21 });
-            //m_dicIndividuralToBuilding.Add(new List<int>() { 15, 20 });
-            //m_dicIndividuralToBuilding.Add(new List<int>() { 16, 19 });
             _InitGroup();
 
             // 初始化所有楼
@@ -117,12 +112,16 @@ namespace GeneticAlgorithm
                     // 对适应度再次进行排序
                     _SortByFitness();
 
+                    _OutputData(iIndex, -m_arrIndividural[0].m_fFitness, m_arrIndividural[0].m_kPosition.m_fPositionX, m_arrIndividural[0].m_kPosition.m_fPositionY);
+
                     iIndex++;
                 }
 
                 // 输出结果
                 _OutputResult();
             }
+
+            m_kFileOutputWriter.Close();
 
             // 停留等待
             Console.Read();
@@ -451,7 +450,11 @@ namespace GeneticAlgorithm
             }
             Console.WriteLine($" 最佳适应度为:{(int)(-m_arrIndividural[0].m_fFitness)}");
             Console.WriteLine($"变电所的位置X：{m_arrIndividural[0].m_kPosition.m_fPositionX} 位置Y：{m_arrIndividural[0].m_kPosition.m_fPositionY}");
+        }
 
+        private static void _OutputData(int iTime, float fMinFitness, float fX, float fY)
+        {
+            m_kFileOutputWriter.WriteLine($"{iTime}\t{fMinFitness}\t{fX}\t{fY}");
         }
         #endregion
     }
