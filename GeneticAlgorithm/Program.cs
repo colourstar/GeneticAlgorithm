@@ -46,8 +46,8 @@ namespace GeneticAlgorithm
 
         public static List<Building> m_arrBuildingList = new List<Building>();
         public static List<Individural> m_arrIndividural = new List<Individural>();
-        private static readonly int m_iIndividuarlNumbers = 20;         // 个体数量
-        private static readonly int m_iSelectNumbers = 20;              // 每轮生成新个体的数量
+        private static readonly int m_iIndividuarlNumbers = 100;         // 个体数量
+        private static readonly int m_iSelectNumbers = 4;              // 每轮生成新个体的数量
         private static readonly int m_iGenerateCount = 1000;             // 迭代次数
         private static readonly float m_fMaxPositionX = 412;            // x最大范围
         private static readonly float m_fMaxPositionY = 258;            // y最大范围
@@ -255,7 +255,7 @@ namespace GeneticAlgorithm
                 Position kBuildingPos = m_arrBuildingList[t - 1].m_vecPosition;
 
                 float fDistance = kElectricPos.Distance(kBuildingPos);
-                fFitnessPart3 += (float)Math.Sqrt(fDistance) * m_arrBuildingList[t - 1].m_fWValue / 1000.0f;
+                fFitnessPart3 += (float)Math.Sqrt(fDistance) * (m_arrBuildingList[t - 1].m_fWValue / 1000.0f) * (m_arrBuildingList[t - 1].m_fWValue / 1000.0f);
             });
 
             fFitness = fFitnessPart1 + fFitnessPart2 + fFitnessPart3;
@@ -297,14 +297,6 @@ namespace GeneticAlgorithm
             // 进行迭代计算,
             for (int i = 0; i < m_iIndividuarlNumbers / 2; ++i)
             {
-                //float fRandomFitness = m_kRandom.Next(0, (int)fTotalFitness);
-                //int iIndex = _NextRouletteIndex(fRandomFitness, m_arrIndividural);
-
-                //if (iIndex < 0 || iIndex >= m_arrIndividural.Count)
-                //{
-                //    continue;
-                //}
-
                 Individural childInstance = new Individural();
                 childInstance.Clone(m_arrIndividural[i]);
                 arrChildIndividural.Add(childInstance);
@@ -417,7 +409,22 @@ namespace GeneticAlgorithm
         /// </summary>
         private static void _VariationIndividural()
         {
+            float fVariation = 1.0f;
+            int iRange = 40;
 
+            // 交叉方式采用算术交叉
+            for (int i = 0; i < m_arrIndividural.Count; i += 1)
+            {
+                // 重新计算交叉率
+                if (fVariation < (float)m_kRandom.NextDouble())
+                {
+                    return;
+                }
+
+                // 这里进行变异操作
+                m_arrIndividural[i].m_kPosition.m_fPositionX += m_kRandom.Next(-iRange, iRange);
+                m_arrIndividural[i].m_kPosition.m_fPositionY += m_kRandom.Next(-iRange, iRange);
+            }
         }
         #endregion
 
